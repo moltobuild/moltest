@@ -1,0 +1,19 @@
+# How a consumer compiles moltest (RFC-0009 in molto). Project.toml builds and
+# tests moltest itself; this file is what `molto add moltest --dev` reads.
+schema = 1
+form = "source"
+kind = "package"
+name = "moltest"
+version = "0.1.0"
+target = "any"
+
+[artifacts]
+type = "source"
+std = "c2x"
+sources = ["src/moltest.c", "src/moltest_main.c"]
+include = ["include"]
+
+[about]
+description = "A small unit-testing framework for C and C++, the official tester of the Molto ecosystem"
+license = "Apache-2.0"
+homepage = "https://github.com/moltobuild/moltest"

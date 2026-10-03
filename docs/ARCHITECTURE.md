@@ -16,7 +16,9 @@
 
 ## Packaging
 A molto package with `artifact = "static"` ([ADR 0001](adr/0001-standalone-molto-package.md)).
-Consumers add it to `[dev-deps]`, so its headers reach `tests/` only.
+`Project.toml` builds and tests moltest itself; `recipe.toml` (a source recipe,
+molto RFC-0009) is what consumers compile. Consumers add it to `[dev-deps]`, so
+its headers reach `tests/` only. Keep the two `version` keys equal.
 
 ## Invariants
 - Zero runtime dependencies beyond the C standard library and the platform API.
