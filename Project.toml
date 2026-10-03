@@ -1,0 +1,31 @@
+# moltest's own manifest. moltest is built, tested and published with molto;
+# there is no Makefile. Consumers add it with `molto add moltest --dev`.
+[package]
+name = "moltest"
+version = "0.1.0"
+description = "A small unit-testing framework for C and C++, the official tester of the Molto ecosystem"
+repository = "https://github.com/moltobuild/moltest"
+license = "Apache-2.0"
+# A static library: consumers link it into their test binary only, and
+# src/moltest_main.c provides main() there.
+artifact = "static"
+
+[target]
+std = "c2x"
+requires = ["attr_nodiscard"]
+defines = ["_DEFAULT_SOURCE", "__USE_MINGW_ANSI_STDIO=1"]
+include = ["include"]
+flags = ["-Wall", "-Wextra", "-Wpedantic"]
+
+[test]
+# moltest tests itself: the suite registers its cases and moltest_main.c, part
+# of src/, owns main(), so everything links into one executable.
+mode = "single"
+
+[profile.debug]
+opt_level = 0
+debug_info = true
+
+[profile.release]
+opt_level = 3
+debug_info = false

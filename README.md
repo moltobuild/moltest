@@ -14,9 +14,29 @@ MOLTEST(str_list_push_appends) {
 }
 ```
 
-Tests register themselves, so there is no list to keep in sync. Link
-`src/moltest.c` and `src/moltest_main.c` into your test binary with
-`-Imodules/moltest/include`; `moltest_main.c` provides `main()`.
+Tests register themselves, so there is no list to keep in sync.
+
+moltest is the official tester of the [Molto](https://github.com/moltobuild/molto)
+ecosystem, and an optional one: nothing in molto requires it, and moltest
+works in any C/C++ project.
+
+## Installing
+
+With molto, as a development dependency (compiled into your tests only):
+
+```sh
+molto add moltest --dev                    # from the registry
+molto add moltest --dev --path ../moltest  # a local checkout
+```
+
+```toml
+[test]
+mode = "single"   # your tests and moltest link into one executable
+```
+
+Without molto: compile `src/moltest.c` and `src/moltest_main.c` into your test
+binary with `-I<moltest>/include` (C23, `-std=c2x`); `moltest_main.c` provides
+`main()`.
 
 ## Assertions
 
@@ -55,8 +75,20 @@ terminal, honouring `NO_COLOR`.
 
 The exit status is 0 when nothing failed, 1 otherwise.
 
-## Extending
+## Extending and plugins
 
 `moltest_set_reporter()` installs an observer with `on_run_start`,
 `on_file_start`, `on_test_end`, `on_file_end` and `on_run_end` callbacks, so
 extra output (JUnit XML, coverage, …) can be added without touching the runner.
+
+Community plugins (`moltest-coverage`, `moltest-junit`, …) are separate
+packages built on that API; see [ADR 0002](docs/adr/0002-plugin-model.md).
+
+## Developing moltest
+
+moltest is built with molto: `molto build`, `molto test`. Start at
+[`docs/PLAN.md`](docs/PLAN.md).
+
+## License
+
+Apache-2.0; see [LICENSE](LICENSE) and [NOTICE](NOTICE).

@@ -132,11 +132,9 @@ static inline void moltest_one_separator(char *path) {
      *
      * `/tmp` is a symlink to `/private/tmp` on macOS, so `mkdtemp` answers with
      * a name that is not where the directory is. Code under test that resolves
-     * a path — and molto resolves the project root, the workspace root and the
-     * compilation database's directory — then disagrees with the fixture about
-     * where the fixture put its own files, and the test fails about a project
-     * being outside its own workspace rather than about anything it meant to
-     * check. A fixture that hands out a name the code will spell differently is
+     * a path then disagrees with the fixture about where the fixture put its
+     * own files, and the test fails about the spelling rather than about
+     * anything it meant to check. A fixture that hands out a name the code will spell differently is
      * a fixture that lies.
      *
      * POSIX only. `GetFullPathNameA` makes a path absolute without resolving
