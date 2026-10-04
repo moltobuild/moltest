@@ -3,13 +3,13 @@
 ## Components
 | Path | Role |
 |---|---|
-| `include/moltest.h` | Public API: `MOLTEST()` registration, `EXPECT_*`/`ASSERT_*`, outcome control, reporter API, fixture helpers (temp dirs/files, fake programs, argv logs) |
+| `include/moltest.h` | Public API: `DESCRIBE()` / `SKIP_TEST()` registration (deprecated aliases `MOLTEST`, `MOLTEST_SKIP`), `EXPECT_*`/`ASSERT_*`, outcome control, reporter API, fixture helpers (temp dirs/files, fake programs, argv logs) |
 | `src/moltest.c` | Registry, runner, output capture, default reporter, option parsing, fake-program support |
 | `src/moltest_main.c` | Default `main()`: `return moltest_run(argc, argv);` |
 | `tests/` | moltest's own suite, run by moltest |
 
 ## Data flow
-1. Each `MOLTEST(name)` registers itself through a constructor before `main()`.
+1. Each `DESCRIBE(name)` registers itself through a constructor before `main()`.
 2. `moltest_run()` parses options (`-k`, `-v`, `-s`, `--list`, `--color`), groups tests per file and runs them.
 3. Every outcome goes to the built-in reporter and to the extra reporter, if one is set (`moltest_set_reporter`).
 4. Exit status: 0 when nothing failed, 1 otherwise.

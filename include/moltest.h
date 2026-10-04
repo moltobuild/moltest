@@ -198,13 +198,13 @@ static inline bool moltest_temp_file(const char *prefix, char *out, size_t size)
 
 typedef void (*moltest_fn)(void);
 
-/* Add a test to the registry. Called automatically by the MOLTEST macros;
+/* Add a test to the registry. Called automatically by DESCRIBE and SKIP_TEST;
    `skip_reason` is NULL for a normal test. */
 void moltest_register(const char *name, const char *file, moltest_fn fn,
                       const char *skip_reason);
 
 /* Define a test and register it before main() runs. */
-#define MOLTEST(test_name)                                                     \
+#define DESCRIBE(test_name)                                                    \
     static void moltest_case_##test_name(void);                                \
     __attribute__((constructor))                                               \
     static void moltest_register_##test_name(void) {                           \
@@ -254,7 +254,7 @@ void moltest_register_fake(const char *name, moltest_fake_fn body);
 [[nodiscard]] const char *moltest_fake_input(void);
 
 /* Define a test that is reported as skipped without running. */
-#define MOLTEST_SKIP(test_name, reason)                                        \
+#define SKIP_TEST(test_name, reason)                                           \
     static void moltest_case_##test_name(void);                                \
     __attribute__((constructor))                                               \
     static void moltest_register_##test_name(void) {                           \
@@ -262,6 +262,11 @@ void moltest_register_fake(const char *name, moltest_fake_fn body);
                          (reason));                                            \
     }                                                                          \
     static void moltest_case_##test_name(void)
+
+/* Deprecated: the names before 0.2.0 (ADR 0003). They stay so that suites
+   written against them keep compiling; new code uses DESCRIBE and SKIP_TEST. */
+#define MOLTEST(test_name) DESCRIBE(test_name)
+#define MOLTEST_SKIP(test_name, reason) SKIP_TEST(test_name, reason)
 
 /* ------------------------------------------------------------------ */
 /* Assertion plumbing (used by the macros below)                        */

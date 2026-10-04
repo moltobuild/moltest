@@ -5,7 +5,7 @@ A small unit-testing framework for C, in the spirit of pytest.
 ```c
 #include <moltest.h>
 
-MOLTEST(str_list_push_appends) {
+DESCRIBE(str_list_push_appends) {
     str_list list;
     str_list_init(&list);
     EXPECT_TRUE(str_list_push(&list, "a"));
@@ -65,7 +65,10 @@ the test.
 | `EXPECT_LT` / `LE` / `GT` / `GE` | ordering |
 
 Outcome control: `SKIP("reason")`, `WARN("message")`, `FAIL("message")`, and
-`MOLTEST_SKIP(name, "reason")` to skip a test without running it.
+`SKIP_TEST(name, "reason")` to skip a test without running it.
+
+`MOLTEST` and `MOLTEST_SKIP`, the names before 0.2.0, still work as deprecated
+aliases of `DESCRIBE` and `SKIP_TEST` ([ADR 0003](docs/adr/0003-describe-macro.md)).
 
 ## Output
 
