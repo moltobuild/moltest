@@ -22,6 +22,10 @@ molto release pinned in `MOLTO_VERSION` (installed and hash-checked by
 
 Bumping molto is a one-line change to `MOLTO_VERSION`, made in its own PR.
 
+`.github/workflows/release.yml` runs on a `v*` tag: the tag must equal the
+version in Project.toml, recipe.toml and MOLTEST_VERSION, the CI above runs
+again, and only then is the GitHub Release published (DEVELOPMENT "Releasing").
+
 ## Strategy
 - moltest tests itself: `tests/` uses `DESCRIBE()` and runs under `molto test`.
 - Passing paths are checked in-process. Failure paths (a failing check, exit
