@@ -8,6 +8,25 @@
 #include <string.h>
 
 /*
+ * A result the caller must look at.
+ *
+ * `[[nodiscard]]` is C23 and C++17 syntax, and this header is compiled as part
+ * of the consumer's tests, in the consumer's language standard: a project on
+ * C17 (the one `molto new` writes) would see a syntax error. Older standards
+ * get the GNU attribute that means the same, and a compiler with neither gets
+ * nothing, which loses a warning and keeps the build.
+ */
+#if defined(__cplusplus) && __cplusplus >= 201703L
+#define MOLTEST_NODISCARD [[nodiscard]]
+#elif !defined(__cplusplus) && defined(__STDC_VERSION__) && __STDC_VERSION__ > 201710L
+#define MOLTEST_NODISCARD [[nodiscard]]
+#elif defined(__GNUC__) || defined(__clang__)
+#define MOLTEST_NODISCARD __attribute__((warn_unused_result))
+#else
+#define MOLTEST_NODISCARD
+#endif
+
+/*
  * What the platform does not provide, provided here once.
  *
  * A test framework is where this belongs: the suites that need a temporary
@@ -97,7 +116,7 @@ static inline void moltest_one_separator(char *path) {
     }
 }
 
-[[nodiscard]] static inline bool moltest_temp_file(const char *prefix, char *out, size_t size);
+MOLTEST_NODISCARD static inline bool moltest_temp_file(const char *prefix, char *out, size_t size);
 
 /*
  * A temporary directory of one's own, created and named.
@@ -112,7 +131,7 @@ static inline void moltest_one_separator(char *path) {
  * a failed fixture rather than as a test result.
  */
 
-[[nodiscard]] static inline bool moltest_temp_dir(const char *prefix, char *out, size_t size) {
+MOLTEST_NODISCARD static inline bool moltest_temp_dir(const char *prefix, char *out, size_t size) {
     moltest_temp_base(out, size, prefix);
     if (out[0] == '\0')
         return false;
@@ -244,14 +263,14 @@ void moltest_register_fake(const char *name, moltest_fake_fn body);
  * compiler needs more than that — which library it ships, which flags it will
  * serve. Those are configuration, not arguments, so they travel in the spec
  * and are read back here. Only meaningful inside a MOLTEST_FAKE body. */
-[[nodiscard]] const char *moltest_fake_setting(const char *key);
+MOLTEST_NODISCARD const char *moltest_fake_setting(const char *key);
 
 /* What this program was fed on stdin, NUL-terminated and never NULL.
  *
  * A compiler decides by the source it was handed — a program that includes
  * nothing needs no standard library — so a fake standing in for one has to be
  * able to read it. Only meaningful inside a MOLTEST_FAKE body. */
-[[nodiscard]] const char *moltest_fake_input(void);
+MOLTEST_NODISCARD const char *moltest_fake_input(void);
 
 /* Define a test that is reported as skipped without running. */
 #define SKIP_TEST(test_name, reason)                                           \
@@ -454,12 +473,12 @@ void moltest_set_reporter(const moltest_reporter *reporter);
 /* Run the registered tests. Returns 0 when nothing failed, 1 otherwise.
    Recognised arguments: -k <substring>, -v, --list, --color=auto|always|never,
    -h/--help. */
-[[nodiscard]] int moltest_run(int argc, char **argv);
+MOLTEST_NODISCARD int moltest_run(int argc, char **argv);
 
 /* The path of the running test binary, once moltest_run has started; NULL
    before. For a suite that checks what its own runner reports by running
    itself again in a child process with `-k`. */
-[[nodiscard]] const char *moltest_self_path(void);
+MOLTEST_NODISCARD const char *moltest_self_path(void);
 
 /*
  * Fabricate a program that behaves as `spec` says.
@@ -493,7 +512,7 @@ void moltest_set_reporter(const moltest_reporter *reporter);
  * is what makes a file runnable. `made`, when not NULL, receives the path the
  * program actually landed at.
  */
-[[nodiscard]] bool moltest_fake_program(const char *path, const char *spec, char *made,
+MOLTEST_NODISCARD bool moltest_fake_program(const char *path, const char *spec, char *made,
                                         size_t size);
 
 /*
@@ -512,7 +531,7 @@ void moltest_set_reporter(const moltest_reporter *reporter);
  * False when the line could not be written, which a fake should treat the way
  * it treats any other failed write.
  */
-[[nodiscard]] bool moltest_append_line(const char *path, const char *line);
+MOLTEST_NODISCARD bool moltest_append_line(const char *path, const char *line);
 
 /*
  * Record what a fake was called with: `prefix`, when given, then `argv[1]`
@@ -522,6 +541,6 @@ void moltest_set_reporter(const moltest_reporter *reporter);
  * recorded whole — an assertion about the last flag on it would otherwise be
  * an assertion about a buffer size.
  */
-[[nodiscard]] bool moltest_log_argv(const char *path, const char *prefix, int argc, char **argv);
+MOLTEST_NODISCARD bool moltest_log_argv(const char *path, const char *prefix, int argc, char **argv);
 
 #endif /* MOLTEST_H */

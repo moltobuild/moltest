@@ -29,3 +29,9 @@
 - Commit: see `git log`
 - Tests: `molto test` 15 passed, 14 skipped (fixtures and intended skips); lint unchanged at 13 warnings (KI-2)
 - Next: KI-1 formatting, KI-2 lint, CI workflows (M1)
+
+## 2026-10-04 — CI on GitHub Actions
+- Done: `.github/workflows/ci.yml` (test and consumer on Linux, macOS, Windows; style reported, not gated); `install-molto.sh` pins and hash-checks molto 0.46.0
+- Commit: see `git log`
+- Tests: install script, suite and consumer script checked locally on macOS with molto 0.46.0; the runners are checked by the first PR run
+- Next: KI-1 and KI-2, then make the style job a gate

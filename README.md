@@ -1,5 +1,7 @@
 # moltest
 
+[![CI](https://github.com/moltobuild/moltest/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/moltobuild/moltest/actions/workflows/ci.yml)
+
 A small unit-testing framework for C, in the spirit of pytest.
 
 ```c
