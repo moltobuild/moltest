@@ -10,7 +10,7 @@
 | Release build | `molto build --profile release` |
 
 ## Strategy
-- moltest tests itself: `tests/` uses `MOLTEST()` and runs under `molto test`.
+- moltest tests itself: `tests/` uses `DESCRIBE()` and runs under `molto test`.
 - Passing paths are checked in-process. Failure paths (a failing check, exit
   status, output format) need a fixture suite run in a child process (M1).
 - Every acceptance criterion in a spec names the test that covers it.

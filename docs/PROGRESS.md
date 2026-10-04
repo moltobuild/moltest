@@ -17,3 +17,15 @@
 - Commit: see `git log`
 - Tests: checked by hand: `molto add git+file://<this repo> --dev` then `molto test` in a new library
 - Next: push this repo to github.com/moltobuild/moltest so the URL resolves
+
+## 2026-10-04 — spec 002 DESCRIBE
+- Done: `DESCRIBE` / `SKIP_TEST`, `MOLTEST` / `MOLTEST_SKIP` kept as aliases; ADR 0003; version 0.2.0
+- Commit: see `git log`
+- Tests: `molto test` 6 passed, 3 skipped (all skips intended)
+- Next: molto's `molto new` template generates `DESCRIBE`; spec 003 hooks
+
+## 2026-10-04 — spec 003 hooks
+- Done: BEFORE_ALL / AFTER_ALL / BEFORE_EACH / AFTER_EACH per file; `moltest_self_path()`; child-process fixture harness (closes spec 001 AC3); ADR 0004 accepted; runtime version string 0.2.0
+- Commit: see `git log`
+- Tests: `molto test` 15 passed, 14 skipped (fixtures and intended skips); lint unchanged at 13 warnings (KI-2)
+- Next: KI-1 formatting, KI-2 lint, CI workflows (M1)
