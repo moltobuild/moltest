@@ -21,5 +21,17 @@ molto add moltest --dev --path ../moltest
 - Public symbols start with `moltest_` or `MOLTEST_`; assertion macros are `EXPECT_*` / `ASSERT_*`.
 - Commits: Conventional Commits; one commit per change.
 
+## Releasing
+1. One PR bumps the version in `Project.toml`, `recipe.toml` and
+   `MOLTEST_VERSION` (`src/moltest.c`); `.github/check-version.sh <version>`
+   checks all three.
+2. After it merges, tag the merge commit and push the tag:
+   `git tag -a v0.3.0 -m "moltest 0.3.0" && git push origin v0.3.0`.
+3. `.github/workflows/release.yml` checks the tag against the three, runs the
+   CI on three platforms, and publishes the GitHub Release. Consumers pin it
+   with `tag = "v0.3.0"`.
+
+Running the Release workflow by hand rehearses all of it without publishing.
+
 ## Workflow
 See `docs/PLAN.md` for the current focus; every feature starts with a spec in `docs/specs/`.
