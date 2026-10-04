@@ -77,3 +77,31 @@ DESCRIBE(failing_check_exits_one_and_reports_its_values) {
     /* The location names the line of the check, not just the file. */
     EXPECT_EQ(1, fixture_count(output, "fixtures_failing_check.c:9\n"));
 }
+
+DESCRIBE(wrong_api_version_is_refused) {
+    const int status = fixture_run("api_version", NULL, output, sizeof output);
+    EXPECT_EQ(1, status);
+    EXPECT_EQ(1, fixture_count(output, "plugin 'old_plugin' was built for reporter API 0"));
+    /* Refused before anything ran. */
+    EXPECT_EQ(0, fixture_count(output, "[body]"));
+}
+
+DESCRIBE(a_reporter_can_fail_the_run) {
+    const int status = fixture_run("fail_run", NULL, output, sizeof output);
+    EXPECT_EQ(1, status);
+    const char *summary = strstr(output, "1 passed");
+    const char *reason = strstr(output, "run failed: coverage 50.0% is under fail_under = 80.0");
+    ASSERT_NOT_NULL(summary);
+    ASSERT_NOT_NULL(reason);
+    /* The reason comes after the summary, as the last word of the run. */
+    EXPECT_TRUE(reason > summary);
+}
+
+DESCRIBE(too_many_reporters_are_refused) {
+    const int status = fixture_run("too_many", NULL, output, sizeof output);
+    EXPECT_EQ(1, status);
+    /* How many are refused depends on what else this binary registers (the
+       reporters of test_reporters.c are here too); that some are is the point. */
+    EXPECT_EQ(1, fixture_count(output, "plugin(s) refused: a run takes at most 8 reporters"));
+    EXPECT_EQ(0, fixture_count(output, "[body]"));
+}

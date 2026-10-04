@@ -28,3 +28,6 @@ Support both models, in order:
 - The reporter struct and the event schema become public contracts, versioned
   independently and documented in `docs/Plugins.md`.
 - Naming convention for community packages: `moltest-<name>`.
+- Implemented in 0.3.0 (spec 004): `moltest_add_reporter()`, `api_version`,
+  `on_test_start`, and `moltest_fail_run()`, which a plugin that gates a run
+  (moltest-coverage's floor) needs and this ADR had not foreseen.

@@ -14,8 +14,11 @@
 3. Per file, BEFORE_ALL runs before the first test that runs and AFTER_ALL
    after the last; per test, BEFORE_EACH, the body, then AFTER_EACH, all inside
    the test's output capture and environment restore ([ADR 0004](adr/0004-setup-teardown-hooks.md)).
-4. Every outcome goes to the built-in reporter and to the extra reporter, if one is set (`moltest_set_reporter`).
-5. Exit status: 0 when nothing failed, 1 otherwise.
+4. Every outcome goes to the built-in reporter and to every plugin reporter
+   (`moltest_add_reporter`, up to 8, checked for `api_version` before the run).
+   After the summary, `on_run_end` runs for each; a plugin may fail the run
+   with `moltest_fail_run`.
+5. Exit status: 0 when no test failed and no plugin failed the run, 1 otherwise.
 
 ## Packaging
 A molto package with `artifact = "static"` ([ADR 0001](adr/0001-standalone-molto-package.md)).

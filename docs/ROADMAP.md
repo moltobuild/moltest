@@ -21,10 +21,11 @@
 - [ ] Their bootstrap Makefiles still build the suite (see ARCHITECTURE, open question)
 
 ## M3 - In-process plugin API v1 (ADR 0002, spec 004) — needed by moltest-coverage
-- [ ] Several reporters at once (`moltest_add_reporter`), the current single one kept as a shim
-- [ ] Versioned reporter struct (`api_version`), `on_test_start`, and `moltest_fail_run()` for plugins that gate the run
+- [x] Several reporters at once (`moltest_add_reporter`), the current single one kept as a shim
+- [x] Versioned reporter struct (`api_version`), `on_test_start`, and `moltest_fail_run()` for plugins that gate the run
 - [ ] Failure details in the test-end event
-- [ ] README "Writing a plugin"; first real plugin: moltest-coverage (its own repo)
+- [x] README "Writing a plugin"
+- [ ] First real plugin: moltest-coverage (its own repo)
 
 ## M4 - Out-of-process events (ADR 0002)
 - [ ] Built-in JSON Lines reporter (`--report=jsonl[:path]`) with a documented, versioned schema
