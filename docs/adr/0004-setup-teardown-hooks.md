@@ -1,4 +1,4 @@
-# 0004 Setup and teardown hooks per file — Status: Proposed
+# 0004 Setup and teardown hooks per file — Status: Accepted
 Date: 2026-10-04
 
 ## Context

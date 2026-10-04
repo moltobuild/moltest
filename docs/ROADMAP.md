@@ -8,10 +8,10 @@
 
 ## M1 - Ready to publish (spec 001)
 - [x] Test macro renamed to `DESCRIBE` / `SKIP_TEST`, old names kept as aliases (spec 002, ADR 0003)
-- [ ] Setup/teardown hooks: BEFORE_ALL/AFTER_ALL per file, BEFORE_EACH/AFTER_EACH per test (spec 003, ADR 0004)
+- [x] Setup/teardown hooks: BEFORE_ALL/AFTER_ALL per file, BEFORE_EACH/AFTER_EACH per test (spec 003, ADR 0004)
 - [ ] Sources formatted with the molto preset; `molto fmt --check` clean
 - [ ] `molto lint` warnings triaged (fixed or configured off with a reason)
-- [ ] Self-tests for failure reporting: run a fixture suite in a child process, check output and exit status
+- [x] Self-tests for failure reporting: run a fixture suite in a child process, check output and exit status
 - [ ] CI on Linux, macOS and Windows running `molto test`
 - [ ] Release 0.1.0 published to the molto registry
 

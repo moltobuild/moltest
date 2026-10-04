@@ -14,7 +14,7 @@
 #include <unistd.h>
 #endif
 
-#define MOLTEST_VERSION "0.1.0"
+#define MOLTEST_VERSION "0.2.0"
 
 /* Column where the per-file progress percentage is printed. */
 #define PROGRESS_COLUMN 58
@@ -75,6 +75,7 @@ typedef struct {
     char *message;    /* explicit message, or NULL */
     const char *file;
     int line;
+    const char *hook; /* the hook it failed in ("BEFORE_EACH", ...), or NULL */
 } failure_record;
 
 typedef struct {
@@ -104,6 +105,44 @@ static size_t current_warnings;
 static size_t total_assertions;
 
 static const moltest_reporter *extra_reporter;
+
+/* The hooks of one test file (ADR 0004); NULL where the file declares none. */
+typedef struct {
+    const char *file;
+    moltest_fn fn[4]; /* indexed by moltest_hook_kind */
+} hook_set;
+
+static hook_set *hooks;
+static size_t hook_count;
+static size_t hook_capacity;
+
+/* The hook running now, named in any failure it records; NULL in a test. */
+static const char *current_hook;
+
+void moltest_register_hook(const char *file, moltest_hook_kind kind, moltest_fn fn) {
+    if ((unsigned)kind > moltest_hook_after_each)
+        return;
+    for (size_t i = 0; i < hook_count; i++) {
+        if (strcmp(hooks[i].file, file) == 0) {
+            hooks[i].fn[kind] = fn;
+            return;
+        }
+    }
+    if (!ensure_capacity((void **)&hooks, hook_count, &hook_capacity, sizeof *hooks))
+        return;
+    hooks[hook_count] = (hook_set){ .file = file };
+    hooks[hook_count].fn[kind] = fn;
+    hook_count++;
+}
+
+/* The hooks declared by `file`; an empty set when it declares none. */
+static hook_set hooks_of(const char *file) {
+    for (size_t i = 0; i < hook_count; i++) {
+        if (strcmp(hooks[i].file, file) == 0)
+            return hooks[i];
+    }
+    return (hook_set){ .file = file };
+}
 
 void moltest_register(const char *name, const char *file, moltest_fn fn,
                       const char *skip_reason) {
@@ -142,6 +181,7 @@ static void add_failure(const char *check, const char *expected, const char *act
         .message = dup_string(message),
         .file = file,
         .line = line,
+        .hook = current_hook,
     };
     failure_count++;
 }
@@ -340,6 +380,8 @@ static void print_failures(void) {
             const failure_record *f = &failures[i];
             if (f->test != ti)
                 continue;
+            if (f->hook != NULL)
+                printf("  %sin %s%s\n", style.dim, f->hook, style.reset);
             if (f->message != NULL)
                 printf("  %sFAIL%s: %s\n", style.red, style.reset, f->message);
             else
@@ -580,7 +622,30 @@ static void moltest_env_restore(moltest_env *saved) {
     moltest_env_free(saved);
 }
 
-static void run_one(size_t index) {
+/* Run one hook, naming it in whatever it records. */
+static void run_hook(moltest_fn fn, const char *name) {
+    if (fn == NULL)
+        return;
+    current_hook = name;
+    fn();
+    current_hook = NULL;
+}
+
+/* Where a file's run stands: what BEFORE_ALL left behind for AFTER_ALL. */
+typedef struct {
+    hook_set hooks;
+    moltest_env *before_all_env; /* the environment before BEFORE_ALL */
+    bool before_all_failed;
+} file_run;
+
+/*
+ * Run test `index`. `first` and `last` say whether it is the first or the last
+ * test of its file that runs, which is where BEFORE_ALL and AFTER_ALL go: inside
+ * the test's own capture, so what they print and what they fail is reported
+ * with a test, and before its status is decided, so a failing AFTER_ALL fails
+ * the test it ran after.
+ */
+static void run_one(size_t index, file_run *run, bool first, bool last) {
     test_entry *t = &tests[index];
     current_test = index;
     current_failed = false;
@@ -603,15 +668,40 @@ static void run_one(size_t index) {
        A test that fails must not change the result of the next one. That is a
        property of the harness, not something each of eight hundred cases can
        be trusted to remember. */
-    moltest_env *saved = moltest_env_save();
-
     double started = now_seconds();
     capture_start();
-    t->fn();
+
+    /* What BEFORE_ALL sets lasts for the whole file, so the environment it
+       started from is saved apart and put back only after AFTER_ALL. */
+    if (first) {
+        run->before_all_env = moltest_env_save();
+        const size_t before = failure_count;
+        run_hook(run->hooks.fn[moltest_hook_before_all], "BEFORE_ALL");
+        run->before_all_failed = failure_count > before;
+    } else if (run->before_all_failed) {
+        add_failure(NULL, NULL, NULL, "not run: BEFORE_ALL failed", t->file, 0);
+    }
+
+    moltest_env *saved = moltest_env_save();
+    if (!run->before_all_failed) {
+        run_hook(run->hooks.fn[moltest_hook_before_each], "BEFORE_EACH");
+        /* A setup that failed or skipped leaves nothing for the body to stand
+           on; the teardown runs regardless, because it is the part that cleans
+           up after the setup. */
+        if (!current_failed && !current_skipped)
+            t->fn();
+        run_hook(run->hooks.fn[moltest_hook_after_each], "AFTER_EACH");
+    }
+    moltest_env_restore(saved);
+
+    if (last) {
+        run_hook(run->hooks.fn[moltest_hook_after_all], "AFTER_ALL");
+        moltest_env_restore(run->before_all_env);
+        run->before_all_env = NULL;
+    }
+
     t->output = capture_finish();
     t->seconds = now_seconds() - started;
-
-    moltest_env_restore(saved);
 
     if (current_failed)
         t->status = moltest_status_failed;
@@ -1046,6 +1136,10 @@ static bool moltest_ran_as_fake(int argc, char **argv, int *status) {
     return true;
 }
 
+const char *moltest_self_path(void) {
+    return moltest_self;
+}
+
 int moltest_run(int argc, char **argv) {
     /* The same question as the spec lookup below, and it wants the same answer:
        a fake is a copy of this file, so this has to be the file and not the
@@ -1136,6 +1230,20 @@ int moltest_run(int argc, char **argv) {
         if (extra_reporter != NULL && extra_reporter->on_file_start != NULL)
             extra_reporter->on_file_start(file, extra_reporter->ctx);
 
+        /* The first and last tests that will run; one registered as skipped
+           runs nothing, hooks included (ADR 0004). */
+        size_t first_runs = test_count;
+        size_t last_runs = test_count;
+        for (size_t i = 0; i < test_count; i++) {
+            if (!tests[i].selected || tests[i].skip_reason != NULL ||
+                strcmp(tests[i].file, file) != 0)
+                continue;
+            if (first_runs == test_count)
+                first_runs = i;
+            last_runs = i;
+        }
+        file_run run = { .hooks = hooks_of(file) };
+
         int written = 0;
         if (!verbose)
             written = printf("%s ", file);
@@ -1143,7 +1251,7 @@ int moltest_run(int argc, char **argv) {
         for (size_t i = 0; i < test_count; i++) {
             if (!tests[i].selected || strcmp(tests[i].file, file) != 0)
                 continue;
-            run_one(i);
+            run_one(i, &run, i == first_runs, i == last_runs);
             done++;
             switch (tests[i].status) {
                 case moltest_status_failed:  summary.failed++; break;

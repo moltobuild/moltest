@@ -263,6 +263,48 @@ void moltest_register_fake(const char *name, moltest_fake_fn body);
     }                                                                          \
     static void moltest_case_##test_name(void)
 
+/*
+ * Setup and teardown for the tests of one file (ADR 0004).
+ *
+ * At most one of each per test file; a second is a redefinition. Each is a
+ * body that may use EXPECT_*, ASSERT_*, FAIL and SKIP like a test:
+ *
+ *   BEFORE_ALL   once, before the first test of this file that runs
+ *   AFTER_ALL    once, after the last test of this file that runs
+ *   BEFORE_EACH  before every test of this file that runs
+ *   AFTER_EACH   after every such test, however it ended: passed, failed,
+ *                stopped by ASSERT_*, or skipped from inside with SKIP()
+ *
+ * Tests skipped with SKIP_TEST or left out by `-k` run no hooks, and a file
+ * with nothing to run runs none. A failing BEFORE_EACH fails its test without
+ * running it; a failing BEFORE_ALL fails every test of the file without
+ * running them; AFTER_* still run in both cases. A failing AFTER_EACH fails
+ * its test, and a failing AFTER_ALL fails the last test that ran. State the
+ * hooks share with the tests lives in `static` variables of the file.
+ */
+typedef enum {
+    moltest_hook_before_all,
+    moltest_hook_after_all,
+    moltest_hook_before_each,
+    moltest_hook_after_each,
+} moltest_hook_kind;
+
+/* Attach a hook to the tests of `file`. Called by the macros below. */
+void moltest_register_hook(const char *file, moltest_hook_kind kind, moltest_fn fn);
+
+#define MOLTEST_HOOK(kind, slug)                                               \
+    static void moltest_hook_body_##slug(void);                                \
+    __attribute__((constructor))                                               \
+    static void moltest_hook_register_##slug(void) {                           \
+        moltest_register_hook(__FILE__, (kind), moltest_hook_body_##slug);     \
+    }                                                                          \
+    static void moltest_hook_body_##slug(void)
+
+#define BEFORE_ALL() MOLTEST_HOOK(moltest_hook_before_all, before_all)
+#define AFTER_ALL() MOLTEST_HOOK(moltest_hook_after_all, after_all)
+#define BEFORE_EACH() MOLTEST_HOOK(moltest_hook_before_each, before_each)
+#define AFTER_EACH() MOLTEST_HOOK(moltest_hook_after_each, after_each)
+
 /* Deprecated: the names before 0.2.0 (ADR 0003). They stay so that suites
    written against them keep compiling; new code uses DESCRIBE and SKIP_TEST. */
 #define MOLTEST(test_name) DESCRIBE(test_name)
@@ -413,6 +455,11 @@ void moltest_set_reporter(const moltest_reporter *reporter);
    Recognised arguments: -k <substring>, -v, --list, --color=auto|always|never,
    -h/--help. */
 [[nodiscard]] int moltest_run(int argc, char **argv);
+
+/* The path of the running test binary, once moltest_run has started; NULL
+   before. For a suite that checks what its own runner reports by running
+   itself again in a child process with `-k`. */
+[[nodiscard]] const char *moltest_self_path(void);
 
 /*
  * Fabricate a program that behaves as `spec` says.

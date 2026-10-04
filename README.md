@@ -70,6 +70,32 @@ Outcome control: `SKIP("reason")`, `WARN("message")`, `FAIL("message")`, and
 `MOLTEST` and `MOLTEST_SKIP`, the names before 0.2.0, still work as deprecated
 aliases of `DESCRIBE` and `SKIP_TEST` ([ADR 0003](docs/adr/0003-describe-macro.md)).
 
+## Setup and teardown
+
+Four hooks per test file, each at most once, used like a test body:
+
+```c
+static char dir[MOLTEST_PATH];
+
+BEFORE_ALL()  { /* once, before the first test of this file that runs */ }
+BEFORE_EACH() { ASSERT_TRUE(moltest_temp_dir("parser", dir, sizeof dir)); }
+AFTER_EACH()  { remove_tree(dir); }   /* always, even after a failed ASSERT */
+AFTER_ALL()   { /* once, after the last test of this file that runs */ }
+
+DESCRIBE(parser_reads_an_empty_file) { /* uses dir */ }
+```
+
+- `AFTER_EACH` runs however the test ended: passed, failed, stopped by
+  `ASSERT_*`, or skipped with `SKIP()`.
+- Tests skipped with `SKIP_TEST` or filtered out by `-k` run no hooks.
+- A failing `BEFORE_EACH` fails its test without running it; a failing
+  `BEFORE_ALL` fails every test of the file. The `AFTER_*` hooks still run.
+- A failing `AFTER_EACH` fails its test; a failing `AFTER_ALL` fails the last
+  test that ran. The report names the hook.
+- Share state through `static` variables in the test file.
+
+See [ADR 0004](docs/adr/0004-setup-teardown-hooks.md).
+
 ## Output
 
 Results are grouped per file with a progress percentage; `.` passed, `F` failed,
