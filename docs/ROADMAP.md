@@ -12,7 +12,8 @@
 - [ ] Sources formatted with the molto preset; `molto fmt --check` clean
 - [ ] `molto lint` warnings triaged (fixed or configured off with a reason)
 - [x] Self-tests for failure reporting: run a fixture suite in a child process, check output and exit status
-- [ ] CI on Linux, macOS and Windows running `molto test`
+- [x] CI on Linux, macOS and Windows running `molto test`, plus a consumer project (`.github/workflows/ci.yml`)
+- [ ] Style job becomes a gate (after KI-1, KI-2)
 - [ ] Release 0.1.0 published to the molto registry
 
 ## M2 - Adoption in molto and pickup
