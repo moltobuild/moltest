@@ -22,12 +22,24 @@ works in any C/C++ project.
 
 ## Installing
 
-With molto, as a development dependency (compiled into your tests only):
+With molto, as a development dependency (compiled into your tests only).
+Until moltest is on the registry, take it from git:
 
 ```sh
-molto add moltest --dev                    # from the registry
-molto add moltest --dev --path ../moltest  # a local checkout
+molto add git+https://github.com/moltobuild/moltest --dev          # the default branch
+molto add git+https://github.com/moltobuild/moltest#v0.1.0 --dev   # a tag, branch or commit
+molto add moltest --dev --path ../moltest                          # a local checkout
 ```
+
+`molto add git+<url>` names the package after the repository and writes the
+reference it resolved into `Project.toml`:
+
+```toml
+[dev-deps]
+moltest = { git = "https://github.com/moltobuild/moltest", branch = "master" }
+```
+
+A library created with `molto new` already has this line and a first test.
 
 ```toml
 [test]

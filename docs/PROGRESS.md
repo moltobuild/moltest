@@ -11,3 +11,9 @@
 - Commit: see `git log`
 - Tests: `molto test` passes here; consumer project builds and its moltest suite passes
 - Next: publish 0.1.0 to the registry (it reports no package called 'moltest')
+
+## 2026-10-04 — install from git
+- Done: README documents `molto add git+https://github.com/moltobuild/moltest --dev`; molto (branch feat/new-lib-default) gained `git+<url>` and a library default for `molto new` that brings moltest
+- Commit: see `git log`
+- Tests: checked by hand: `molto add git+file://<this repo> --dev` then `molto test` in a new library
+- Next: push this repo to github.com/moltobuild/moltest so the URL resolves
