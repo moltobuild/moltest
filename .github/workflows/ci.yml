@@ -130,12 +130,13 @@ jobs:
   # Not a gate yet: the sources inherited from molto were never formatted with
   # the molto preset (KNOWN_ISSUES KI-1) and lint reports 13 warnings (KI-2).
   # The job runs so the numbers are visible on every PR; removing
-  # `continue-on-error` is the last step of closing those two issues.
+  # `continue-on-error` from its two checks is the last step of closing those
+  # issues. It sits on the steps, not the job: a job that is allowed to fail
+  # still shows as a red check on the PR, which reads as a broken build.
   style:
     name: Style (not yet a gate)
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    continue-on-error: true
     env:
       C_COMPILER: gcc
       MOLTO_CLANG_FORMAT: /usr/bin/clang-format-19
@@ -153,4 +154,6 @@ jobs:
       - name: Install molto ${{ env.MOLTO_VERSION }}
         run: ./.github/install-molto.sh x86_64-linux sha256sum
       - run: molto fmt --check
+        continue-on-error: true
       - run: molto lint
+        continue-on-error: true
