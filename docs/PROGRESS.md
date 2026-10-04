@@ -35,3 +35,15 @@
 - Commit: see `git log`
 - Tests: install script, suite and consumer script checked locally on macOS with molto 0.46.0; the runners are checked by the first PR run
 - Next: KI-1 and KI-2, then make the style job a gate
+
+## 2026-10-04 — spec 004 drafted
+- Done: plugin API v1 spec (several reporters, constructor registration, api_version, on_test_start, moltest_fail_run), driven by moltest-coverage's design
+- Commit: see `git log`
+- Tests: none (spec only)
+- Next: implement spec 004
+
+## 2026-10-04 — spec 004 plugin API v1
+- Done: up to 8 reporters registered from constructors, api_version check, on_test_start, moltest_fail_run; README "Writing a plugin"; version 0.3.0
+- Commit: see `git log`
+- Tests: `molto test` 21 passed, 17 skipped (fixtures and intended skips); lint unchanged at 13 (KI-2)
+- Next: moltest-coverage M2 (its spec 001)

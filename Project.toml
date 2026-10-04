@@ -2,7 +2,7 @@
 # there is no Makefile. Consumers add it with `molto add moltest --dev`.
 [package]
 name = "moltest"
-version = "0.2.0"
+version = "0.3.0"
 description = "A small unit-testing framework for C and C++, the official tester of the Molto ecosystem"
 repository = "https://github.com/moltobuild/moltest"
 license = "Apache-2.0"

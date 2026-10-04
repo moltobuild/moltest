@@ -118,14 +118,49 @@ terminal, honouring `NO_COLOR`.
 
 The exit status is 0 when nothing failed, 1 otherwise.
 
-## Extending and plugins
+## Writing a plugin
 
-`moltest_set_reporter()` installs an observer with `on_run_start`,
-`on_file_start`, `on_test_end`, `on_file_end` and `on_run_end` callbacks, so
-extra output (JUnit XML, coverage, …) can be added without touching the runner.
+A plugin is a package that registers a reporter when it is linked: adding it
+to `[dev-deps]` is the whole setup for its users. Up to 8 reporters run
+together, called in the order they registered.
 
-Community plugins (`moltest-coverage`, `moltest-junit`, …) are separate
-packages built on that API; see [ADR 0002](docs/adr/0002-plugin-model.md).
+```c
+#include <moltest.h>
+
+static void on_run_end(const moltest_summary *summary, void *ctx) {
+    (void)ctx;
+    printf("my_plugin: %zu tests\n", summary->tests);
+    if (summary->tests == 0)
+        moltest_fail_run("my_plugin: nothing was tested");
+}
+
+static const moltest_reporter my_plugin = {
+    .api_version = MOLTEST_REPORTER_API, /* required: checked when the run starts */
+    .name = "my_plugin",
+    .on_run_end = on_run_end,
+};
+
+__attribute__((constructor)) static void register_my_plugin(void) {
+    moltest_add_reporter(&my_plugin);
+}
+```
+
+| Callback | When |
+|---|---|
+| `on_run_start(files, tests)` | before the first test |
+| `on_file_start(file)` / `on_file_end(file, done, total)` | around each file |
+| `on_test_start(file, name)` | before each test's `BEFORE_EACH` (not for `SKIP_TEST`) |
+| `on_test_end(file, name, status, seconds)` | after each test, `AFTER_EACH` included |
+| `on_run_end(summary)` | after the summary is printed |
+
+`moltest_fail_run(reason)` makes the run exit 1 even when every test passed,
+and prints the reason last: for plugins that gate a run, such as a coverage
+floor. A reporter built for another `MOLTEST_REPORTER_API` is refused before
+any test runs. `moltest_set_reporter()` still works, as `moltest_add_reporter()`.
+
+Community plugins are separate packages named `moltest-<name>`, such as
+[moltest-coverage](https://github.com/moltobuild/moltest-coverage); see
+[ADR 0002](docs/adr/0002-plugin-model.md).
 
 ## Developing moltest
 

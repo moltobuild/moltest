@@ -14,7 +14,7 @@
 #include <unistd.h>
 #endif
 
-#define MOLTEST_VERSION "0.2.0"
+#define MOLTEST_VERSION "0.3.0"
 
 /* Column where the per-file progress percentage is printed. */
 #define PROGRESS_COLUMN 58
@@ -104,7 +104,23 @@ static bool current_skipped;
 static size_t current_warnings;
 static size_t total_assertions;
 
-static const moltest_reporter *extra_reporter;
+/* The plugins of this run, in registration order (spec 004). */
+static const moltest_reporter *reporters[MOLTEST_REPORTERS_MAX];
+static size_t reporter_count;
+/* Registrations past MOLTEST_REPORTERS_MAX, refused when the run starts. */
+static size_t reporters_refused;
+
+/* Reasons a plugin failed the run with, printed after the summary. */
+#define FAIL_RUN_MAX 16
+static char *fail_run_reasons[FAIL_RUN_MAX];
+static size_t fail_run_count;
+
+/* Call `callback` on every reporter that has it, with the arguments after it. */
+#define EACH_REPORTER(callback, ...)                                           \
+    for (size_t r_ = 0; r_ < reporter_count; r_++) {                           \
+        if (reporters[r_]->callback != NULL)                                   \
+            reporters[r_]->callback(__VA_ARGS__, reporters[r_]->ctx);          \
+    }
 
 /* The hooks of one test file (ADR 0004); NULL where the file declares none. */
 typedef struct {
@@ -159,8 +175,45 @@ void moltest_register(const char *name, const char *file, moltest_fn fn,
     test_count++;
 }
 
+void moltest_add_reporter(const moltest_reporter *reporter) {
+    if (reporter == NULL)
+        return;
+    if (reporter_count == MOLTEST_REPORTERS_MAX) {
+        reporters_refused++;
+        return;
+    }
+    reporters[reporter_count++] = reporter;
+}
+
 void moltest_set_reporter(const moltest_reporter *reporter) {
-    extra_reporter = reporter;
+    moltest_add_reporter(reporter);
+}
+
+void moltest_fail_run(const char *reason) {
+    if (fail_run_count < FAIL_RUN_MAX)
+        fail_run_reasons[fail_run_count++] = dup_string(reason != NULL ? reason : "");
+}
+
+/* Whether every registered reporter can be called: the right layout, and not
+   more of them than there is room for. Says what is wrong when not. */
+static bool reporters_are_usable(void) {
+    bool usable = true;
+    for (size_t i = 0; i < reporter_count; i++) {
+        if (reporters[i]->api_version != MOLTEST_REPORTER_API) {
+            fprintf(stderr,
+                    "moltest: plugin '%s' was built for reporter API %d and this moltest "
+                    "speaks API %d; rebuild it against this moltest\n",
+                    reporters[i]->name != NULL ? reporters[i]->name : "(unnamed)",
+                    reporters[i]->api_version, MOLTEST_REPORTER_API);
+            usable = false;
+        }
+    }
+    if (reporters_refused > 0) {
+        fprintf(stderr, "moltest: %zu plugin(s) refused: a run takes at most %d reporters\n",
+                reporters_refused, MOLTEST_REPORTERS_MAX);
+        usable = false;
+    }
+    return usable;
 }
 
 /* ------------------------------------------------------------------ */
@@ -1204,6 +1257,11 @@ int moltest_run(int argc, char **argv) {
         return 0;
     }
 
+    /* Before any test runs: a plugin that cannot be called would otherwise
+       miss the run it was linked for, or be called through the wrong slots. */
+    if (!reporters_are_usable())
+        return 1;
+
     const char **files = calloc(test_count > 0 ? test_count : 1, sizeof *files);
     if (files == NULL)
         return 1;
@@ -1212,8 +1270,7 @@ int moltest_run(int argc, char **argv) {
     printf("%smoltest %s%s — %zu file%s, %zu test%s\n\n", style.bold, MOLTEST_VERSION,
            style.reset, file_count, file_count == 1 ? "" : "s",
            selected, selected == 1 ? "" : "s");
-    if (extra_reporter != NULL && extra_reporter->on_run_start != NULL)
-        extra_reporter->on_run_start(file_count, selected, extra_reporter->ctx);
+    EACH_REPORTER(on_run_start, file_count, selected)
 
     double started = now_seconds();
     size_t done = 0;
@@ -1227,8 +1284,7 @@ int moltest_run(int argc, char **argv) {
         if (in_file == 0)
             continue;
 
-        if (extra_reporter != NULL && extra_reporter->on_file_start != NULL)
-            extra_reporter->on_file_start(file, extra_reporter->ctx);
+        EACH_REPORTER(on_file_start, file)
 
         /* The first and last tests that will run; one registered as skipped
            runs nothing, hooks included (ADR 0004). */
@@ -1251,6 +1307,8 @@ int moltest_run(int argc, char **argv) {
         for (size_t i = 0; i < test_count; i++) {
             if (!tests[i].selected || strcmp(tests[i].file, file) != 0)
                 continue;
+            if (tests[i].skip_reason == NULL)
+                EACH_REPORTER(on_test_start, file, tests[i].name)
             run_one(i, &run, i == first_runs, i == last_runs);
             done++;
             switch (tests[i].status) {
@@ -1268,9 +1326,7 @@ int moltest_run(int argc, char **argv) {
                 written += printf("%s%s%s", status_color(tests[i].status),
                                   status_mark(tests[i].status), style.reset);
             }
-            if (extra_reporter != NULL && extra_reporter->on_test_end != NULL)
-                extra_reporter->on_test_end(file, tests[i].name, tests[i].status,
-                                            tests[i].seconds, extra_reporter->ctx);
+            EACH_REPORTER(on_test_end, file, tests[i].name, tests[i].status, tests[i].seconds)
         }
 
         if (!verbose) {
@@ -1282,8 +1338,7 @@ int moltest_run(int argc, char **argv) {
                    style.reset);
             (void)written;
         }
-        if (extra_reporter != NULL && extra_reporter->on_file_end != NULL)
-            extra_reporter->on_file_end(file, done, selected, extra_reporter->ctx);
+        EACH_REPORTER(on_file_end, file, done, selected)
     }
 
     summary.seconds = now_seconds() - started;
@@ -1296,8 +1351,15 @@ int moltest_run(int argc, char **argv) {
         printf("\n");
     print_summary(&summary);
 
-    if (extra_reporter != NULL && extra_reporter->on_run_end != NULL)
-        extra_reporter->on_run_end(&summary, extra_reporter->ctx);
+    EACH_REPORTER(on_run_end, &summary)
+
+    /* After every plugin has spoken, so a reason is the last thing printed and
+       is not buried under another plugin's report. */
+    for (size_t i = 0; i < fail_run_count; i++) {
+        printf("%srun failed:%s %s\n", style.red, style.reset, fail_run_reasons[i]);
+        free(fail_run_reasons[i]);
+    }
+    const bool failed_by_a_plugin = fail_run_count > 0;
 
     /* Release the recorded details. */
     for (size_t i = 0; i < failure_count; i++) {
@@ -1315,5 +1377,5 @@ int moltest_run(int argc, char **argv) {
     free(files);
     free(tests);
 
-    return summary.failed > 0 ? 1 : 0;
+    return summary.failed > 0 || failed_by_a_plugin ? 1 : 0;
 }

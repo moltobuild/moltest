@@ -455,11 +455,28 @@ typedef struct {
     double seconds;
 } moltest_summary;
 
-/* Observer of a run. Every callback may be NULL. Set one to add an alternative
-   output (JUnit XML, coverage, ...) without touching the runner. */
+/*
+ * Observer of a run: the plugin API (ADR 0002, spec 004).
+ *
+ * A plugin fills one of these with designated initializers, sets
+ * `api_version` to MOLTEST_REPORTER_API, and registers it with
+ * moltest_add_reporter() — from a constructor, so that linking the plugin is
+ * the whole setup. Every callback may be NULL. A reporter whose `api_version`
+ * is not this header's is refused when the run starts, and the run fails:
+ * a plugin built against another layout would otherwise be called through the
+ * wrong slots.
+ */
+#define MOLTEST_REPORTER_API 1
+/* How many reporters a run can have at once. */
+#define MOLTEST_REPORTERS_MAX 8
+
 typedef struct {
+    int api_version;  /* MOLTEST_REPORTER_API */
+    const char *name; /* names the plugin in messages; may be NULL */
     void (*on_run_start)(size_t files, size_t tests, void *ctx);
     void (*on_file_start)(const char *file, void *ctx);
+    /* Before the test's BEFORE_EACH and body; not called for SKIP_TEST. */
+    void (*on_test_start)(const char *file, const char *name, void *ctx);
     void (*on_test_end)(const char *file, const char *name, moltest_status status,
                         double seconds, void *ctx);
     void (*on_file_end)(const char *file, size_t done, size_t total, void *ctx);
@@ -468,7 +485,17 @@ typedef struct {
 } moltest_reporter;
 
 /* Install an additional reporter (the console one always runs). */
+/* Add a reporter to the run; reporters are called in the order they were
+   added. Safe to call before main(). The reporter must outlive the run. */
+void moltest_add_reporter(const moltest_reporter *reporter);
+
+/* What moltest_add_reporter() does; the name from before 0.3.0. */
 void moltest_set_reporter(const moltest_reporter *reporter);
+
+/* Fail the run with `reason`, printed after the summary: the exit status is 1
+   even when every test passed. For a plugin that gates the run, such as a
+   coverage floor; meant for on_run_end. `reason` is copied. */
+void moltest_fail_run(const char *reason);
 
 /* Run the registered tests. Returns 0 when nothing failed, 1 otherwise.
    Recognised arguments: -k <substring>, -v, --list, --color=auto|always|never,
