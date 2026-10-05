@@ -32,6 +32,9 @@ its headers reach `tests/` only. Keep the two `version` keys equal.
 - moltest never requires molto at runtime; molto never requires moltest.
 - The reporter API is the plugin boundary ([ADR 0002](adr/0002-plugin-model.md)).
 
-## Open question
-molto and pickup build their first binary with a Makefile, which cannot run
-`molto add`. M2 must decide how that bootstrap gets moltest's sources.
+## Consumers and the bootstrap
+molto and pickup take moltest as a development dependency at a tag, resolved
+by molto into its shared store and reused by every project that names the same
+tag. Their bootstrap Makefiles build only the first binary and hand `make test`
+over to molto, so nothing fetches or vendors moltest outside that store
+(decided in M2; moltobuild/molto#92, moltobuild/pickup#26).

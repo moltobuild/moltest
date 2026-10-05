@@ -6,7 +6,7 @@ without molto too. Its reporter API is open so the community can ship plugins
 (`moltest-coverage`, `moltest-junit`, ...) as separate packages.
 
 ## Current focus
-Milestone: M1 - Ready to publish · Spec: specs/001-standalone-package.md · Next step: format the inherited sources with the molto preset
+Milestone: M1 - Ready to publish · Spec: specs/001-standalone-package.md · Next step: format the inherited sources with the molto preset (KI-1), then lint (KI-2); M2 and M3 are done
 
 ## Docs
 [ROADMAP](ROADMAP.md) · [ARCHITECTURE](ARCHITECTURE.md) · [SECURITY](SECURITY.md) ·
