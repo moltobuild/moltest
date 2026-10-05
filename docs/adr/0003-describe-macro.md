@@ -31,3 +31,10 @@ created.
   with an ADR that supersedes this one).
 - `DESCRIBE` is an unprefixed name, like `EXPECT_*`; a project that defines its
   own `DESCRIBE` cannot include moltest.h unchanged.
+
+## Update 2026-10-05
+`molto new` no longer takes moltest from `master`: since molto 0.53.0
+(moltobuild/molto#103) it pins the newest release tag when the project is
+created, or offline the newest release that molto knows. A release of moltest
+no longer reaches existing projects by itself. The aliases stay as decided
+above: projects created before then still use `MOLTEST`.

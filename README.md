@@ -28,20 +28,22 @@ With molto, as a development dependency (compiled into your tests only).
 Until moltest is on the registry, take it from git:
 
 ```sh
-molto add git+https://github.com/moltobuild/moltest --dev          # the default branch
-molto add git+https://github.com/moltobuild/moltest#v0.1.0 --dev   # a tag, branch or commit
-molto add moltest --dev --path ../moltest                          # a local checkout
+molto add git+https://github.com/moltobuild/moltest#v0.3.0 -d   # a release (recommended)
+molto add moltest -d --path ../moltest                          # a local checkout
 ```
 
 `molto add git+<url>` names the package after the repository and writes the
-reference it resolved into `Project.toml`:
+reference into `Project.toml`. Pin a release tag: a branch lets whatever lands
+on it next into your build without a diff.
 
 ```toml
 [dev-deps]
-moltest = { git = "https://github.com/moltobuild/moltest", branch = "master" }
+moltest = { git = "https://github.com/moltobuild/moltest", tag = "v0.3.0" }
 ```
 
-A library created with `molto new` already has this line and a first test.
+A library created with `molto new` already has this line, pinned to moltest's
+newest release when the project is created (molto 0.53.0 or later), and a
+first test.
 
 ```toml
 [test]
