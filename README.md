@@ -118,6 +118,24 @@ terminal, honouring `NO_COLOR`.
 
 The exit status is 0 when nothing failed, 1 otherwise.
 
+### Running one folder
+
+`-k` matches a substring of the test's name *or* of its file path, and the path
+is the one the compiler saw (`__FILE__`). A suite laid out in folders, like
+`tests/services/` next to `src/services/`, can therefore run one folder:
+
+```sh
+molto test -- -k tests/services/
+molto test -p coverage -- -k tests/services/
+```
+
+Keep the trailing `/`, or `tests/util` also matches `tests/utility/`.
+
+With [moltest-coverage](https://github.com/moltobuild/moltest-coverage), the
+`fail_under` floor in `moltest-coverage.toml` is measured over all of `src/`. A
+run limited to one folder will almost always land below it and fail, but the
+report still shows what that folder covers.
+
 ## Writing a plugin
 
 A plugin is a package that registers a reporter when it is linked: adding it
