@@ -53,3 +53,10 @@
 - Commit: see `git log`
 - Tests: molto and pickup CI green on Linux, macOS and Windows with moltest v0.3.0
 - Next: KI-1 (formatting) and KI-2 (lint), then make the style job a gate
+
+## 2026-10-05 — install docs pin a release
+- Done: README installs moltest at a release tag (`#v0.3.0`, `-d`), not the
+  default branch; ADR 0003 notes that `molto new` pins the newest release since
+  molto 0.53.0 (moltobuild/molto#103)
+- Tests: docs only
+- Next: —
