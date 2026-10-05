@@ -47,3 +47,9 @@
 - Commit: see `git log`
 - Tests: `molto test` 21 passed, 17 skipped (fixtures and intended skips); lint unchanged at 13 (KI-2)
 - Next: moltest-coverage M2 (its spec 001)
+
+## 2026-10-05 — M2 adoption done
+- Done: molto (#92) and pickup (#26) take moltest v0.3.0 from molto's store; their Makefiles hand `make test` to molto; molto measures itself with moltest-coverage 0.1.1; releases are published by tag (v0.3.0)
+- Commit: see `git log`
+- Tests: molto and pickup CI green on Linux, macOS and Windows with moltest v0.3.0
+- Next: KI-1 (formatting) and KI-2 (lint), then make the style job a gate
