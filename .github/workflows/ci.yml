@@ -23,7 +23,7 @@ concurrency:
 # under test is moltest, and a red has to be attributable to it.
 env:
   MOLTO_VERSION: "0.46.0"
-  MOLTO_SOURCE_REF: "8e9da5f587e7cac58203f571e1b6a20f4c57df50"
+  MOLTO_SOURCE_REF: "9da5c0c4b53a0135c0964403c9846317a2236ebc"
   MOLTO_RELEASES: https://github.com/moltobuild/molto/releases/download
   LLVM_VERSION: "19"
 
