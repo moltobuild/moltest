@@ -60,3 +60,11 @@
   molto 0.53.0 (moltobuild/molto#103)
 - Tests: docs only
 - Next: —
+
+## 2026-10-08 — RFC-0024 manifest package
+- Removed the carried recipe; the manifest describes the consumer interface.
+- CI builds an immutable RFC-0024 Molto revision and validates packaging.
+- Release version checks no longer require a recipe.
+- Security: no runtime code, public API or input handling changed.
+- Validation: package check, self-test (21 passed, 17 skipped), consumer smoke test and release version check passed with Clang on macOS.
+- CI bootstrap updated to include the Windows read-only Git object pruning fix.

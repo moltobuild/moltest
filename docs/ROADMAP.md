@@ -40,3 +40,6 @@
 ## Backlog
 - Parametrized tests
 - C++ ergonomics (`EXPECT_EQ` on `std::string`, exceptions)
+
+## Manifest package migration
+- [x] Adopt RFC-0024 and validate packaging ([spec](specs/005-manifest-package.md)).

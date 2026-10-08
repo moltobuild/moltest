@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # Make a library with `molto new`, point its moltest at the checkout given as
-# $1, and run its suite. This is the path a user takes, through recipe.toml.
+# $1, and run its suite. This is the path a user takes, through Project.toml.
 set -eu
 
 moltest=$1

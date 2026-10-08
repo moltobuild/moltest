@@ -17,13 +17,13 @@ molto release pinned in `MOLTO_VERSION` (installed and hash-checked by
 | Job | Runs on | Checks |
 |---|---|---|
 | Test | Linux (gcc), macOS (clang), Windows (MSYS2 gcc) | `molto build`, `molto build --profile release`, `molto test` |
-| Consumer | the same three | `molto new` + this checkout as `[dev-deps]` + its `molto test` (`.github/consumer.sh`), i.e. `recipe.toml` |
+| Consumer | the same three | `molto new` + this checkout as `[dev-deps]` + its `molto test` (`.github/consumer.sh`), i.e. the public `Project.toml` interface |
 | Style | Linux, LLVM 19 | `molto fmt --check`, `molto lint`; **not a gate** until KI-1 and KI-2 close |
 
 Bumping molto is a one-line change to `MOLTO_VERSION`, made in its own PR.
 
 `.github/workflows/release.yml` runs on a `v*` tag: the tag must equal the
-version in Project.toml, recipe.toml and MOLTEST_VERSION, the CI above runs
+version in Project.toml and MOLTEST_VERSION, the CI above runs
 again, and only then is the GitHub Release published (DEVELOPMENT "Releasing").
 
 ## Strategy
@@ -39,3 +39,9 @@ again, and only then is the GitHub Release published (DEVELOPMENT "Releasing").
 - [ ] Spec, ROADMAP and PLAN "Current focus" updated
 - [ ] ARCHITECTURE / DEPENDENCIES / ADRs updated if affected
 - [ ] PROGRESS entry added, commit done, graphs refreshed
+
+## Manifest package migration
+
+CI temporarily builds Molto from the immutable `MOLTO_SOURCE_REF` revision
+with RFC-0024. `molto package` validates the tracked, pruned consumer copy.
+Switch back to a pinned binary release once RFC-0024 is released.

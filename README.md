@@ -190,3 +190,10 @@ moltest is built with molto: `molto build`, `molto test`. Start at
 ## License
 
 Apache-2.0; see [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
+## Manifest packages (RFC-0024)
+
+This checkout requires a Molto build with RFC-0024 support. Project.toml is
+the only consumer description; run `molto package` before tagging a release.
+Older release tags still use recipes and require older Molto consumers.
+CI temporarily builds the immutable Molto revision in `MOLTO_SOURCE_REF`.

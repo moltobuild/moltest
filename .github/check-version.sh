@@ -4,7 +4,7 @@
 #
 #   check-version.sh <version>      e.g. 0.3.0, or v0.3.0 (a tag)
 #
-# Project.toml is what molto builds, recipe.toml is what consumers read, and
+# Project.toml describes both the package and its consumer interface, and
 # MOLTEST_VERSION is what the runner prints. A release where they disagree has
 # happened once already (the runner said 0.1.0 at 0.2.0); this makes it a red
 # run instead of a published one.
@@ -27,7 +27,6 @@ toml_version() {
 }
 
 check Project.toml "$(toml_version Project.toml)"
-check recipe.toml "$(toml_version recipe.toml)"
 check src/moltest.c "$(sed -n 's/^#define MOLTEST_VERSION "\(.*\)".*/\1/p' src/moltest.c)"
 
 exit $fail

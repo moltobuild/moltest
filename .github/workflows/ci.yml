@@ -23,6 +23,7 @@ concurrency:
 # under test is moltest, and a red has to be attributable to it.
 env:
   MOLTO_VERSION: "0.46.0"
+  MOLTO_SOURCE_REF: "9da5c0c4b53a0135c0964403c9846317a2236ebc"
   MOLTO_RELEASES: https://github.com/moltobuild/molto/releases/download
   LLVM_VERSION: "19"
 
@@ -50,9 +51,10 @@ jobs:
       C_COMPILER: ${{ matrix.cc }}
     steps:
       - uses: actions/checkout@v7.0.1
-      - name: Install molto ${{ env.MOLTO_VERSION }}
+      - name: Install the pinned Molto revision
         run: ./.github/install-molto.sh "${{ matrix.asset }}" "${{ matrix.sha }}"
       - run: molto build
+      - run: molto package
       - run: molto build --profile release
       - run: molto test
 
@@ -72,15 +74,16 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          install: mingw-w64-x86_64-gcc
-      - name: Install molto ${{ env.MOLTO_VERSION }}
+          install: mingw-w64-x86_64-gcc make git
+      - name: Install the pinned Molto revision
         run: ./.github/install-molto.sh x86_64-windows.exe sha256sum
       - run: molto build
+      - run: molto package
       - run: molto build --profile release
       - run: molto test
 
   # What a user of moltest gets: a project made by `molto new`, with this
-  # checkout as its dev-dependency. That goes through recipe.toml, which
+  # checkout as its dev-dependency. That reads the public manifest interface, which
   # moltest's own suite never reads.
   consumer:
     name: Consumer (${{ matrix.os }})
@@ -104,7 +107,7 @@ jobs:
       C_COMPILER: ${{ matrix.cc }}
     steps:
       - uses: actions/checkout@v7.0.1
-      - name: Install molto ${{ env.MOLTO_VERSION }}
+      - name: Install the pinned Molto revision
         run: ./.github/install-molto.sh "${{ matrix.asset }}" "${{ matrix.sha }}"
       - name: A new library tests itself with this moltest
         run: ./.github/consumer.sh "$GITHUB_WORKSPACE"
@@ -124,8 +127,8 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          install: mingw-w64-x86_64-gcc
-      - name: Install molto ${{ env.MOLTO_VERSION }}
+          install: mingw-w64-x86_64-gcc make git
+      - name: Install the pinned Molto revision
         run: ./.github/install-molto.sh x86_64-windows.exe sha256sum
       - name: A new library tests itself with this moltest
         run: ./.github/consumer.sh "$PWD"
@@ -156,7 +159,7 @@ jobs:
             "deb http://apt.llvm.org/noble/ llvm-toolchain-noble-${LLVM_VERSION} main"
           sudo apt-get install -y -o Acquire::Retries=3 \
             clang-format-${LLVM_VERSION} clang-tidy-${LLVM_VERSION}
-      - name: Install molto ${{ env.MOLTO_VERSION }}
+      - name: Install the pinned Molto revision
         run: ./.github/install-molto.sh x86_64-linux sha256sum
       - run: molto fmt --check
         continue-on-error: true
