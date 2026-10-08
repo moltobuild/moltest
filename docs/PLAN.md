@@ -13,3 +13,6 @@ Milestone: M1 - Ready to publish · Spec: specs/001-standalone-package.md · Nex
 [VALIDATION](VALIDATION.md) · [DEVELOPMENT](DEVELOPMENT.md) ·
 [DEPENDENCIES](DEPENDENCIES.md) · [PROGRESS](PROGRESS.md) ·
 [KNOWN_ISSUES](KNOWN_ISSUES.md) · [specs/](specs/) · [adr/](adr/)
+
+## Package migration
+Current task: RFC-0024 ([spec](specs/005-manifest-package.md)); remove the recipe and validate the manifest consumer interface.

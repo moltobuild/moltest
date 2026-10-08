@@ -22,7 +22,7 @@ molto add moltest --dev --path ../moltest
 - Commits: Conventional Commits; one commit per change.
 
 ## Releasing
-1. One PR bumps the version in `Project.toml`, `recipe.toml` and
+1. One PR bumps the version in `Project.toml` and
    `MOLTEST_VERSION` (`src/moltest.c`); `.github/check-version.sh <version>`
    checks all three.
 2. After it merges, tag the merge commit and push the tag:

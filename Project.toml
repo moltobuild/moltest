@@ -17,6 +17,11 @@ defines = ["_DEFAULT_SOURCE", "__USE_MINGW_ANSI_STDIO=1"]
 include = ["include"]
 flags = ["-Wall", "-Wextra", "-Wpedantic"]
 
+# Public options also apply to the package itself through [target].
+[interface]
+defines = ["_DEFAULT_SOURCE"]
+entry = "src/moltest_main.c"
+
 [test]
 # moltest tests itself: the suite registers its cases and moltest_main.c, part
 # of src/, owns main(), so everything links into one executable.
